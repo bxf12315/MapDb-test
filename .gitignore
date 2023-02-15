@@ -1,0 +1,10 @@
+
+## db file
+/db*.db
+/db*bin/*
+
+.idea/*
+
+.gitignore
+
+target/*
