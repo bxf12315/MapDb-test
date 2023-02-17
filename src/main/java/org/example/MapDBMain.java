@@ -2,6 +2,10 @@ package org.example;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
@@ -23,6 +27,20 @@ public class MapDBMain {
         searchPersonInstance(1000, "db10000.db", "map10000");
         searchPersonInstance(10000, "db100000.db", "map100000");
         searchPersonInstance(100000, "db1000000.db", "map1000000");
+
+        batchStoreForInitSize(10, "db10.db", "map10");
+        batchStoreForInitSize(100, "db100.db", "map100");
+        batchStoreForInitSize(1000, "db1000.db", "map1000");
+        batchStoreForInitSize(10000, "db10000.db", "map10000");
+        batchStoreForInitSize(100000, "db100000.db", "map100000");
+        batchStoreForInitSize(1000000, "db1000000.db", "map1000000");
+
+        batchStoreWithThread(10, "db10.db", "map10");
+        batchStoreWithThread(100, "db100.db", "map100");
+        batchStoreWithThread(1000, "db1000.db", "map1000");
+        batchStoreWithThread(10000, "db10000.db", "map10000");
+        batchStoreWithThread(100000, "db100000.db", "map100000");
+        batchStoreWithThread(1000000, "db1000000.db", "map1000000");
     }
 
     static void batchStore(int size, String dbName, String mapName) {
@@ -32,8 +50,52 @@ public class MapDBMain {
                 .keySerializer(Serializer.STRING)
                 .valueSerializer(Serializer.JAVA)
                 .createOrOpen();
+
         for (int i = 0; i < size; i++) {
             map.put(i + "", new Person("name" + i, i));
+        }
+        db.close();
+        long elapsedNanos = System.nanoTime() - startTime;
+        System.out.println("Database" + dbName + " map " + mapName + " elapsedNanos = " + elapsedNanos);
+    }
+
+    static void batchStoreForInitSize(int size, String dbName, String mapName) {
+        long startTime = System.nanoTime();
+        DB db = DBMaker.fileDB(dbName).fileMmapEnable().allocateStartSize(1024 * 1024 * 1024).allocateIncrement(1024 * 1024).make();
+        Map<String, Object> map = db.hashMap(mapName)
+                .keySerializer(Serializer.STRING)
+                .valueSerializer(Serializer.JAVA)
+                .createOrOpen();
+
+        for (int i = 0; i < size; i++) {
+            map.put(i + "", new Person("name" + i, i));
+        }
+        db.close();
+        long elapsedNanos = System.nanoTime() - startTime;
+        System.out.println("Database" + dbName + " map " + mapName + " elapsedNanos = " + elapsedNanos);
+    }
+
+    static void batchStoreWithThread(int size, String dbName, String mapName) {
+        long startTime = System.nanoTime();
+        DB db = DBMaker.fileDB(dbName).fileMmapEnable().allocateStartSize(1024 * 1024 * 1024).allocateIncrement(1024 * 1024).make();
+        Map<String, Object> map = db.hashMap(mapName)
+                .keySerializer(Serializer.STRING)
+                .valueSerializer(Serializer.JAVA)
+                .createOrOpen();
+        final int poolSize = 100;
+        ExecutorService executor = Executors.newFixedThreadPool(poolSize);
+
+        for (int i = 0; i < size; i++) {
+            final AtomicInteger ai = new AtomicInteger(i);
+            executor.submit(() -> {
+                map.put(ai.get() + "", new Person("name" + ai.get(), ai.get()));
+            });
+        }
+        executor.shutdown();
+        try {
+            executor.awaitTermination(1, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
         db.close();
         long elapsedNanos = System.nanoTime() - startTime;
@@ -47,7 +109,7 @@ public class MapDBMain {
                 .keySerializer(Serializer.STRING)
                 .valueSerializer(Serializer.JAVA)
                 .createOrOpen();
-        Object instance = map.get(index+"");
+        Object instance = map.get(index + "");
         long elapsedNanos = System.nanoTime() - startTime;
         System.out.println("Database" + dbName + " map " + mapName + " elapsedNanos = " + elapsedNanos);
 

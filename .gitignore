@@ -8,3 +8,5 @@
 .gitignore
 
 target/*
+/rocks/*
+*.log
