@@ -82,10 +82,10 @@
 
 ##### Multithreading
 ##### time spent in storage
-Databaserocks/db10.bin elapsedNanos = 3996552
-Databaserocks/db100.bin elapsedNanos = 19662116
-Databaserocks/db1000.bin elapsedNanos = 16023367
-Databaserocks/db10000.bin elapsedNanos = 19912314
-Databaserocks/db100000.bin elapsedNanos = 94300606
-Databaserocks/db1000000.bin elapsedNanos = 576378420
+* Databaserocks/db10.bin elapsedNanos = 3996552
+* Databaserocks/db100.bin elapsedNanos = 19662116
+* Databaserocks/db1000.bin elapsedNanos = 16023367
+* Databaserocks/db10000.bin elapsedNanos = 19912314
+* Databaserocks/db100000.bin elapsedNanos = 94300606
+* Databaserocks/db1000000.bin elapsedNanos = 576378420
 
